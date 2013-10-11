@@ -6,7 +6,7 @@
 	https://bitbucket.org/alixandru/bitbucket-sync
 
 	File: config.php
-	Version: 1.0.0
+	Version: 2.0.0
 	Description: Configuration file for BitBucket Sync script
 
 
@@ -64,6 +64,10 @@ $CONFIG = array(
 	
 	/** The password of [apiUser] account */
 	'apiPassword' => '',
+	
+	
+	/** Whether to print operation details. Very useful, especially when setting up projects */
+	'verbose' => true,
 );
 
 
