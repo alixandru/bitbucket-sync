@@ -51,15 +51,19 @@ The script reads commit information saved locally by the gateway script and atte
 
 #### 2. Full synchronization ####
 
-This mode can be enabled by specifying the `setup` GET parameter in the URL in which case, the script will get the full repository from BitBucket and deploy it locally. This is achieved through getting a zip archive of the project, extracting it locally and copying its contents over to the specified project location, on the local file-system. 
+This mode can be enabled by specifying the `setup` GET parameter in the URL in which case, the script will get the full repository from BitBucket and deploy it locally. This is achieved through getting a zip archive of the project, extracting it locally and copying its contents over to the project location specified in the configuration file. 
 This operation mode does not necessarily need a POST service hook to be defined in BitBucket for the project and is generally suited for initial set-up of projects that will be kept in sync with this script. 
 
 
-### Example of how to get a project set up ###
+### Steps on how to get a project set up ###
 
-If your repository is called *my-library*, you need to configure it in the `config.php` file with a proper folder location and optionally a deploy branch. After this step, simply access the script `deploy.php` with the parameter `?setup=my-library` (i.e. `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library`). It is advisable to have *verbose mode* enabled, to see exactly what is happening. 
+If your repository is called *my-library*, you need to define it in the `config.php` file and to specify, at least, a valid location, accessible for writing by the web server process. Optionally you can state the branch from which the deployment will be performed. 
 
-By default, the script will attempt to get the project from a repository created under your name (i.e. if your user is `johndoe`, it will try to get the repository `johndoe/my-library`). If the project belongs to a team or to another user, use the URL parameter `team` to specify it. For example, accessing `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library&team=doeteam` will fetch the project `doeteam/my-library`. Useful also for forks.
+After this step, simply access the script `deploy.php` with the parameter `?setup=my-library` (i.e. `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library`). It is advisable to have *verbose mode* enabled in the configuration file, to see exactly what is happening. 
+
+By default, the script will attempt to get the project from a BitBucket repository created under your name (i.e. if your user is `johndoe`, it will try to get the repository `johndoe/my-library`). If the project belongs to a team or to another user, use the URL parameter `team` to specify it. For example, accessing `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library&team=doeteam` will fetch the project `doeteam/my-library`. Useful also for forks.
+
+Full synchronization mode also supports cleaning up the destination folder before attempting to import the zip archive. This can be done by specifying the `clean` URL parameter (i.e. `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library&clean=1`). When this parameter is present, the contents of the project location folder (specified in the configuration file) will be deleted before performing the actual import. Use this with caution.
 
 Once the import is complete, you can go on and setup the service hook in BitBucket and start pushing changes to your project.
 
@@ -79,6 +83,11 @@ All of this information can be provided in the `config.php` file. Detailed descr
 
 
 ## Change log ##
+
+**v2.0.1**
+
+* Improved the full synchronization support.
+
 
 **v2.0.0**
 

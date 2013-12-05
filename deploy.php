@@ -134,24 +134,26 @@ function syncFull($repository) {
 		return false;
 	}
 	
-	// delete the old files
-	loginfo(" * Deleting old content from $deployLocation\n");
-	if( deltree($deployLocation) === false ) {
-		echo " # Unable to completely remove the old files from $deployLocation. Process will be continue anyway!\n";
+	// delete the old files, if instructed to do so
+	if( isset($_GET['clean']) && $_GET['clean'] == 1 ) {
+		loginfo(" * Deleting old content from $deployLocation\n");
+		if( deltree($deployLocation) === false ) {
+			echo " # Unable to completely remove the old files from $deployLocation. Process will continue anyway!\n";
+		}
 	}
 	
 	// copy the contents over
 	loginfo(" * Copying new content to $deployLocation\n");
-	if( rename($zipLocation . $folder, $deployLocation) === false ) {
+	if( cptree($zipLocation . $folder, $deployLocation) == false ) {
 		echo " # Unable to deploy the extracted files to $deployLocation. Deployment is incomplete!\n";
-		deltree($zipLocation . $folder);
+		deltree($zipLocation . $folder, true);
 		unlink($zipLocation . $zipFile);
 		return false;
 	}
 	
 	// clean up
 	loginfo(" * Cleaning up temporary files and folders\n");
-	deltree($zipLocation . $folder);
+	deltree($zipLocation . $folder, true);
 	unlink($zipLocation . $zipFile);
 	
 	echo "\nFinished deploying $repository.\n</pre>";
@@ -318,17 +320,35 @@ function getFileContents($url) {
 
 
 /**
+ * Copies the directory contents, recursively, to the specified location
+ */
+function cptree($dir, $dst) {
+	if (!file_exists($dst)) mkdir($dst, 0775, true);
+	if (!is_dir($dir) || is_link($dir)) return copy($dir, $dst); // should not happen
+	$files = array_diff(scandir($dir), array('.','..'));
+	foreach ($files as $file) {
+		(is_dir("$dir/$file")) ? cptree("$dir/$file", "$dst/$file") : copy("$dir/$file", "$dst/$file");
+	}
+	return true;
+}
+
+
+/**
  * Deletes a directory recursively, no matter whether it is empty or not
  */
-function deltree($dir) {
+function deltree($dir, $deleteParent = false) {
 	if (!file_exists($dir)) return false;
 	if (!is_dir($dir) || is_link($dir)) return unlink($dir);
 	$files = array_diff(scandir($dir), array('.','..'));
 	foreach ($files as $file) {
-		(is_dir("$dir/$file")) ? deltree("$dir/$file") : unlink("$dir/$file");
+		(is_dir("$dir/$file")) ? deltree("$dir/$file", true) : unlink("$dir/$file");
 	}
 
-	return rmdir($dir);
+	if($deleteParent) {
+		return rmdir($dir);
+	} else {
+		return true;
+	}
 }
 
 
