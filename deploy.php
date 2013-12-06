@@ -85,7 +85,7 @@ function syncFull($repository) {
 	
 	// determine the destination of the deployment
 	if( array_key_exists($repository, $DEPLOY) ) {
-		$deployLocation = $DEPLOY[ $repository ] . (substr($DEPLOY[ $repository ], -1) == '/' ? '' : '/');
+		$deployLocation = $DEPLOY[ $repository ] . (substr($DEPLOY[ $repository ], -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
 	} else {
 		echo " # Unknown repository: $repository!";
 		return false;
@@ -110,7 +110,7 @@ function syncFull($repository) {
 	
 	// store the zip file temporary
 	$zipFile = 'full-' . time() . '-' . rand(0, 100);
-	$zipLocation = $CONFIG['commitsFolder'] . (substr($CONFIG['commitsFolder'], -1) == '/' ? '' : '/');
+	$zipLocation = $CONFIG['commitsFolder'] . (substr($CONFIG['commitsFolder'], -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
 	file_put_contents($zipLocation . $zipFile, $contents);
 
 	// extract contents
@@ -171,7 +171,7 @@ function syncChanges() {
 	echo "<pre>\nBitBucket Sync\n===============\n";
 	
 	$processed = array();
-	$location = $CONFIG['commitsFolder'] . (substr($CONFIG['commitsFolder'], -1) == '/' ? '' : '/');
+	$location = $CONFIG['commitsFolder'] . (substr($CONFIG['commitsFolder'], -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
 	$commits = @scandir($location, 0);
 
 	if($commits)
@@ -210,7 +210,7 @@ function deployChangeSet( $postData ) {
 	
 	// determine the destination of the deployment
 	if( array_key_exists($o->repository->slug, $DEPLOY) ) {
-		$deployLocation = $DEPLOY[ $o->repository->slug ] . (substr($DEPLOY[ $o->repository->slug ], -1) == '/' ? '' : '/');
+		$deployLocation = $DEPLOY[ $o->repository->slug ] . (substr($DEPLOY[ $o->repository->slug ], -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
 	} else {
 		// unknown repository ?
 		return false;
@@ -237,7 +237,8 @@ function deployChangeSet( $postData ) {
 	// loop through commits
 	foreach($o->commits as $commit) {
 		// if commit was on the branch we're watching, deploy changes
-		if( $commit->branch == $deployBranch ) {
+		if( $commit->branch == $deployBranch || 
+				(!empty($commit->branches) && array_search($deployBranch, $commit->branches) !== false)) {
 			// if there are any pending files, merge them in
 			$files = array_merge($pending, $commit->files);
 			
@@ -323,11 +324,13 @@ function getFileContents($url) {
  * Copies the directory contents, recursively, to the specified location
  */
 function cptree($dir, $dst) {
-	if (!file_exists($dst)) mkdir($dst, 0775, true);
+	if (!file_exists($dst)) if(!mkdir($dst, 0755, true)) return false;
 	if (!is_dir($dir) || is_link($dir)) return copy($dir, $dst); // should not happen
 	$files = array_diff(scandir($dir), array('.','..'));
+	$sep = (substr($dir, -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
+	$dsp = (substr($dst, -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
 	foreach ($files as $file) {
-		(is_dir("$dir/$file")) ? cptree("$dir/$file", "$dst/$file") : copy("$dir/$file", "$dst/$file");
+		(is_dir("$dir$sep$file")) ? cptree("$dir$sep$file", "$dst$dsp$file") : copy("$dir$sep$file", "$dst$dsp$file");
 	}
 	return true;
 }
@@ -340,8 +343,9 @@ function deltree($dir, $deleteParent = false) {
 	if (!file_exists($dir)) return false;
 	if (!is_dir($dir) || is_link($dir)) return unlink($dir);
 	$files = array_diff(scandir($dir), array('.','..'));
+	$sep = (substr($dir, -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
 	foreach ($files as $file) {
-		(is_dir("$dir/$file")) ? deltree("$dir/$file", true) : unlink("$dir/$file");
+		(is_dir("$dir$sep$file")) ? deltree("$dir$sep$file", true) : unlink("$dir$sep$file");
 	}
 
 	if($deleteParent) {

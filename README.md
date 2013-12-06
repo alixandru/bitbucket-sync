@@ -87,6 +87,8 @@ All of this information can be provided in the `config.php` file. Detailed descr
 **v2.0.1**
 
 * Improved the full synchronization support.
+* Cleaning the destination before import is now an optional operation, triggered only by `clean` parameter
+* Fixed issue with branch which was not correctly determined if multiple branches were pushed
 
 
 **v2.0.0**
