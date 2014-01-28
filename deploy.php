@@ -33,7 +33,20 @@
 	as they happen (through operation mode 1).
 	
 	
-	1. Commit synchronization
+	1. Full synchronization
+	
+	This mode can be enabled by specifying the "setup" GET parameter in the URL
+	in which case the script will get the full repository from BitBucket and
+	deploy it locally. This is done by getting a zip archive of the project,
+	extracting it locally and copying its contents over to the specified
+	project location, on the local file-system.
+	
+	This operation mode does not necessarily need a POST service hook to be 
+	defined in BitBucket for the project and is generally suited for initial 
+	set-up of projects that will be kept in sync with this script. 
+	
+	
+	2. Commit synchronization
 	
 	This is the default mode which is used when the script is accessed with
 	no parameters in the URL. In this mode, the script updates only the files
@@ -46,18 +59,10 @@
 	files. This script tries to optimize the synchronization by not processing 
 	files more than once.
 	
+	When a deployment fails the original commit file is preserved. It is 
+	possible to retry processing failed synchronizations by specifying the 
+	"retry" GET parameter in the URL.
 	
-	2. Full synchronization
-	
-	This mode can be enabled by specifying the "setup" GET parameter in the URL
-	in which case, the script will get the full repository from BitBucket and
-	deploy it locally. This is done by getting a zip archive of the project,
-	extracting it locally and copying its contents over to the specified
-	project location, on the local file-system.
-	
-	This operation mode does not necessarily need a POST service hook to be 
-	defined in BitBucket for the project and is generally suited for initial 
-	set-up of projects that will be kept in sync with this script. 
  */
 
 
@@ -67,9 +72,16 @@ require_once( 'config.php' );
 
 
 if(isset($_GET['setup']) && !empty($_GET['setup'])) {
+	# full synchronization
 	$repo = strip_tags(stripslashes(urldecode($_GET['setup'])));
 	syncFull($repo);
+	
+} else if(isset($_GET['retry'])) {
+	# retry failed synchronizations
+	syncChanges(true);
+	
 } else {
+	# commit synchronization
 	syncChanges();
 }
 
@@ -164,11 +176,16 @@ function syncFull($repository) {
  * Synchronizes changes from the commit files.
  * See explanation at the top of the file for details.
  */
-function syncChanges() {
+function syncChanges($retry = false) {
 	global $CONFIG;
 	global $processed;
 	
 	echo "<pre>\nBitBucket Sync\n===============\n";
+	
+	$prefix = $CONFIG['commitsFilenamePrefix'];
+	if($retry) {
+		$prefix = "failed-$prefix";
+	}
 	
 	$processed = array();
 	$location = $CONFIG['commitsFolder'] . (substr($CONFIG['commitsFolder'], -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
@@ -177,18 +194,25 @@ function syncChanges() {
 	if($commits)
 	foreach($commits as $file) {
 		if( $file != '.' && $file != '..' && is_file($location . $file) 
-			&& stristr($file, $CONFIG['commitsFilenamePrefix']) !== false ) {
+			&& stripos($file, $prefix) === 0 ) {
 			// get file contents and parse it
 			$json = @file_get_contents($location . $file);
+			$del = true;
 			if(!$json || !deployChangeSet( $json )) {
-				echo " # Could not process changeset!\n$json\n\n";
+				echo " # Could not process file $file!\n$json\n\n";
+				$del = false;
 			} else {
 				echo " * Processed commit file $file\n";
 			}
 			flush();
 			
-			// delete file afterwards
-			unlink( $location . $file );
+			if($del) {
+				// delete file afterwards
+				unlink( $location . $file );
+			} else {
+				// keep failed file for later processing
+				if(!$retry) rename( $location . $file, $location . 'failed-' . $file );
+			}
 		}
 	}
 	echo "\nFinished processing commits.\n</pre>";

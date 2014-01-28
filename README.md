@@ -6,9 +6,9 @@ This is a lightweight utility script that synchronizes the local file system wit
 
 ## Description ##
 
-This script keeps the files deployed on dedicated or shared-hosting web-servers in sync with the updates made on a BitBucket project.
+This script keeps your website in sync with the updates made on a BitBucket project.
 
-It is intended to be used on a web-server which is reachable from the internet and which can accept POST requests coming from BitBucket. It works by getting all the updates from a BitBucket project and applying them to a local copy of the project files. 
+It is intended to be used on a web-server which is reachable from the internet and which can accept POST requests coming from BitBucket servers. It works by getting all the updates from a BitBucket project and applying them to a local copy of the project files. 
 
 For example, supposing you have a website which is deployed on a shared-hosting server, and the source code is stored in a private repository in BitBucket. This script allows you to automatically update the deployed website each time you push changes to the BitBucket project. This way, you don't have to manually copy any file from your working directory to the hosting server.
 
@@ -18,7 +18,7 @@ BitBucket Sync will synchronize only the files which have been modified, thus re
 
 ### Prerequisites ###
 
-This script requires PHP 5.3+ with cURL and Zip extensions enabled and any web-server offering PHP support (most shared web hosting solutions should work fine).
+This script requires PHP 5.3+ with **cURL** and **Zip** extensions enabled. It can be used with most shared web-hosting providers offering PHP support.
 
 ### Installation instructions ###
 
@@ -34,38 +34,58 @@ This script requires PHP 5.3+ with cURL and Zip extensions enabled and any web-s
 
 * Adjust configuration file `config.php` with information related to your environment and BitBucket projects that you want to keep in sync (see **Configuration** section).
 
-* Perform an initial import of each project, through which all the project files are copied to the web-server file-system (see **Notes** section below).
+* Make all folders involved in the sync write-accessible (see `config.php` for details).
 
-* Configure all your BitBucket projects that you want to keep synchronized to post commit information to your web server through the POST service hook. [See more information][Hook] on how to create a service hook in BitBucket. The POST URL should point to the `gateway.php` script. For example, `http://mysite.ext/bitbucket-sync/gateway.php`.
+* Perform an initial import of each project, through which all the project files are copied to the web-server file-system (see **Operation** section below).
+
+* Configure all your BitBucket projects that you want to keep synchronized to send commit information to your web server through the POST service hook. Information should be posted to the `gateway.php` script (**mandatory!**). [See more information][Hook] on how to create a service hook in BitBucket. POST URL should be, for example, `http://mysite.ext/bitbucket-sync/gateway.php`.
 
 * Start pushing commits to your BitBucket projects and see if the changes are reflected on your web server. Depending on the configuration, you might need to manually trigger the synchronization by accessing the `deploy.php` script through your web server (i.e. `http://mysite.ext/bitbucket-sync/deploy.php`).
 
-### Notes ###
+
+## Operation ##
 
 This script has two complementary modes of operation detailed below. 
 
-#### 1. Commit synchronization ####
+### 1. Full synchronization ###
 
-This is the default mode which is used when the `deploy.php` script is accessed with no parameters in the URL. In this mode, the script updates only the files which have been modified by a commit that was pushed to the repository. 
-The script reads commit information saved locally by the gateway script and attempts to synchronize the local file-system with the updates that have been made in the BitBucket project. The list of files which have been changed (added, updated or deleted) will be taken from the commit files. This script tries to optimize the synchronization by not processing files more than once. 
-
-#### 2. Full synchronization ####
-
-This mode can be enabled by specifying the `setup` GET parameter in the URL in which case, the script will get the full repository from BitBucket and deploy it locally. This is achieved through getting a zip archive of the project, extracting it locally and copying its contents over to the project location specified in the configuration file. 
+The script runs in this mode when it is accessed through the web-server and has the `setup` GET parameter specified in the URL (`deploy.php?setup=project`).  In this mode, the script will get the full repository from BitBucket and deploy it locally. This is achieved through getting a zip archive of the project, extracting it locally and copying its contents over to the project location specified in the configuration file. 
 This operation mode does not necessarily need a POST service hook to be defined in BitBucket for the project and is generally suited for initial set-up of projects that will be kept in sync with this script. 
 
 
-### Steps on how to get a project set up ###
+#### Steps on how to get a project set up using full synchronization ####
 
-If your repository is called *my-library*, you need to define it in the `config.php` file and to specify, at least, a valid location, accessible for writing by the web server process. Optionally you can state the branch from which the deployment will be performed. 
+1. If your repository is called *my-library*, you need to define it in the `config.php` file and to specify, at least, a valid location, accessible for writing by the web server process. Optionally you can state the branch from which the deployment will be performed. 
 
-After this step, simply access the script `deploy.php` with the parameter `?setup=my-library` (i.e. `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library`). It is advisable to have *verbose mode* enabled in the configuration file, to see exactly what is happening. 
+2. After this step, simply access the script `deploy.php` with the parameter `setup=my-library` (i.e. `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library`). It is advisable to have *verbose mode* enabled in the configuration file, to see exactly what is happening. 
 
-By default, the script will attempt to get the project from a BitBucket repository created under your name (i.e. if your user is `johndoe`, it will try to get the repository `johndoe/my-library`). If the project belongs to a team or to another user, use the URL parameter `team` to specify it. For example, accessing `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library&team=doeteam` will fetch the project `doeteam/my-library`. Useful also for forks.
+   By default, the script will attempt to get the project from a BitBucket repository created under your name (i.e. if your user is `johndoe`, it will try to get the repository `johndoe/my-library`). If the project belongs to a team or to another user, use the URL parameter `team` to specify it. For example, accessing `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library&team=doeteam` will fetch the project `doeteam/my-library`. Useful also for forks.
 
-Full synchronization mode also supports cleaning up the destination folder before attempting to import the zip archive. This can be done by specifying the `clean` URL parameter (i.e. `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library&clean=1`). When this parameter is present, the contents of the project location folder (specified in the configuration file) will be deleted before performing the actual import. Use this with caution.
+   Full synchronization mode also supports cleaning up the destination folder before attempting to import the zip archive. This can be done by specifying the `clean` URL parameter (i.e. `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library&clean=1`). When this parameter is present, the contents of the project location folder (specified in the configuration file) will be deleted before performing the actual import. Use this with caution.
 
-Once the import is complete, you can go on and setup the service hook in BitBucket and start pushing changes to your project.
+   Once the import is complete, you can go on and setup the service hook in BitBucket and start pushing changes to your project.
+
+
+
+### 2. Commit synchronization ###
+
+This is the default mode which is used when the `deploy.php` script is accessed with no parameters in the URL. To work in this mode, the script needs to read the commit information received from BitBucket, so a POST service hook **must be configured** before changes can be automatically synchronized. In this mode, the script updates only the files which have been modified in a commit. If a file is changed by multiple commits it will be deployed only once, with the latest content, thus reducing network traffic. The entire sync process is described below.
+
+
+#### The process flow of commit synchronization ####
+
+1. You make one or more commits and push to BitBucket.
+
+2. BitBucket receives the changes and checks for any service hooks configured for the project. Since there is a POST hook defined (see **Installation** section above), it makes a HTTP request (POST) to `gateway.php` script. This request contains information about the commits that were pushed (which files have been added, updated or deleted, what branches were affected, etc).
+
+3. The `gateway.php` script records the request from BitBucket in a file stored locally in `commits` folder. This file will then be read when performing the actual sync. Storing data in a local file allows retrying the synchronization in case of failure.
+
+4. The `deploy.php` script is invoked (either automatically from `gateway.php`, manually through a browser, or through a cron job on the web-server). This script will perform the actual synchronization by reading the local file containing the commit meta-data and requesting from BitBucket the content of files which have been changed. It will then update the local project files, one by one. After all files are updated, the meta-data file from `commits` folder is deleted to prevent synchronizing the same changes again. 
+
+5. If synchronization fails, the commit files (containing the commit meta-data) are not deleted, but preserved for later processing. They can be processed again by specifying the `retry` GET parameter when invoking `deploy.php` (i.e. `deploy.php?retry`).
+
+Note: since files are updated one by one, there is a risk of having the website in an inconsistent state until all files are updated. It is recommended to trigger the actual synchronization (step 4) only when there is a low activity on the website.
+
 
 
   [Git]: http://git-scm.com/
@@ -81,8 +101,16 @@ Then the script needs to know where to put the files locally once they are fetch
 
 All of this information can be provided in the `config.php` file. Detailed descriptions of all configuration items is contained as comments in the file.
 
+**Important!** Make sure all folders specified in the `config.php` have write permission for the user under which the web-server process runs. This is mandatory in order for the script to be able to store commit meta-data files locally.
+
 
 ## Change log ##
+
+**v2.1.0**
+
+* Added the ability to retry failed synchronizations.
+* Updated the documentation to make it more clear
+
 
 **v2.0.1**
 
