@@ -70,19 +70,25 @@ ini_set('display_errors','On');
 ini_set('error_reporting', E_ALL);
 require_once( 'config.php' );
 
+if (!isset($key)) {
+	if(isset($_GET['key'])) {
+		$key = strip_tags(stripslashes(urlencode($_GET['key'])));
+
+	} else $key = '';
+}
 
 if(isset($_GET['setup']) && !empty($_GET['setup'])) {
 	# full synchronization
 	$repo = strip_tags(stripslashes(urldecode($_GET['setup'])));
-	syncFull($repo);
+	syncFull($key, $repo);
 	
 } else if(isset($_GET['retry'])) {
 	# retry failed synchronizations
-	syncChanges(true);
+	syncChanges($key, true);
 	
 } else {
 	# commit synchronization
-	syncChanges();
+	syncChanges($key);
 }
 
 
@@ -90,8 +96,14 @@ if(isset($_GET['setup']) && !empty($_GET['setup'])) {
  * Gets the full content of the repository and stores it locally.
  * See explanation at the top of the file for details.
  */
-function syncFull($repository) {
+function syncFull($key, $repository) {
 	global $CONFIG, $DEPLOY, $DEPLOY_BRANCH;
+
+	// check authentication key if authentication is required
+	if ( $CONFIG[ 'requireAuthentication' ] && $CONFIG[ 'deployAuthKey' ] != $key) {
+		http_response_code(401);
+		return false;
+	}
 
 	echo "<pre>\nBitBucket Sync - Full Deploy\n=============================\n";
 	
@@ -176,10 +188,16 @@ function syncFull($repository) {
  * Synchronizes changes from the commit files.
  * See explanation at the top of the file for details.
  */
-function syncChanges($retry = false) {
+function syncChanges($key, $retry = false) {
 	global $CONFIG;
 	global $processed;
 	
+	// check authentication key if authentication is required
+	if ( $CONFIG[ 'requireAuthentication' ] && $CONFIG[ 'deployAuthKey' ] != $key) {
+		http_response_code(401);
+		return false;
+	}
+
 	echo "<pre>\nBitBucket Sync\n===============\n";
 	
 	$prefix = $CONFIG['commitsFilenamePrefix'];

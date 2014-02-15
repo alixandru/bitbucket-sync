@@ -68,6 +68,20 @@ $CONFIG = array(
 	
 	/** Whether to print operation details. Very useful, especially when setting up projects */
 	'verbose' => true,
+
+	/** Whether to require authentication key parameter when requesting gateway or deploy scripts */
+	'requireAuthentication' => false,
+
+	/** Authentication key value. This value needs to be given in key-parameter in requests to gateway
+	 * script if requireAuthentication config parameter is set to true.
+	 */
+	'gatewayAuthKey' => '',
+
+	/** Authentication key value. This value needs to be given in key-parameter in requests to deploy
+	 * script if requireAuthentication config parameter is set to true.
+	 */
+	'deployAuthKey' => '',
+
 );
 
 
