@@ -30,18 +30,44 @@
 
 require_once( 'config.php' );
 
+// For 4.3.0 <= PHP <= 5.4.0
+if (!function_exists('http_response_code'))
+{
+    function http_response_code($newcode = NULL)
+    {
+        static $code = 200;
+        if($newcode !== NULL)
+        {
+            header('X-PHP-Response-Code: '.$newcode, true, $newcode);
+            if(!headers_sent())
+                $code = $newcode;
+        }       
+        return $code;
+    }
+}
+
 $file = $CONFIG['commitsFilenamePrefix'] . time() . '-' . rand(0, 100);
 $location = $CONFIG['commitsFolder'] . (substr($CONFIG['commitsFolder'], -1) == '/' ? '' : '/');
 
-if(!empty($_POST['payload'])) {
-	// store commit data
-	file_put_contents( $location . $file, stripslashes(urldecode($_POST['payload'])));
-	
-	// process the commit data right away
-	if($CONFIG['automaticDeployment']) {
-		require_once( 'deploy.php' );
+// Parse auhentication key from request
+if(isset($_GET['key'])) {
+	$key = strip_tags(stripslashes(urlencode($_GET['key'])));
+
+} else $key = '';
+
+// check authentication key if authentication is required
+if ( !$CONFIG['requireAuthentication'] || $CONFIG[ 'requireAuthentication' ] && $CONFIG[ 'gatewayAuthKey' ] == $key) {
+	if(!empty($_POST['payload'])) {
+		// store commit data
+		file_put_contents( $location . $file, stripslashes(urldecode($_POST['payload'])));
+		
+		// process the commit data right away
+		if($CONFIG['automaticDeployment']) {
+				$key = $CONFIG['deployAuthKey'];
+				require_once( 'deploy.php' );
+		}	
 	}
 }
-
+else http_response_code(401);
 
 /* Omit PHP closing tag to help avoid accidental output */
