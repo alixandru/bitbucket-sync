@@ -22,24 +22,12 @@ This script requires PHP 5.3+ with **cURL** and **Zip** extensions enabled. It c
 
 ### Installation instructions ###
 
-* Get the source code for this script from [BitBucket][], either using [Git][], or downloading directly:
-
-    - To download using git, install git and then type
-
-        `git clone git@bitbucket.org:alixandru/bitbucket-sync.git bitbucket-sync`
-		
-    - To download directly, go to the [project page][BitBucket] and click on **Download**
-
-* Copy the source files to your web-server in a location which is accessible from the internet (usually `public_html`, or `www` folders) 
-
+* Get the source code for this script from [BitBucket][], either using Git, or by downloading directly.
+* Copy the source files to your web-server in a location which is accessible from the internet (usually `public_html`, or `www` folders).
 * Adjust configuration file `config.php` with information related to your environment and BitBucket projects that you want to keep in sync (see **Configuration** section).
-
 * Make all folders involved in the sync write-accessible (see `config.php` for details).
-
-* Perform an initial import of each project, through which all the project files are copied to the web-server file-system (see **Operation** section below).
-
-* Configure all your BitBucket projects that you want to keep synchronized to send commit information to your web server through the POST service hook. Information should be posted to the `gateway.php` script (**mandatory!**). [See more information][Hook] on how to create a service hook in BitBucket. POST URL should be, for example, `http://mysite.ext/bitbucket-sync/gateway.php`.
-
+* Perform an initial import of each project, through which the project files are copied to the web-server file-system (see **Operation** section below).
+* Configure each BitBucket project that you want to keep synchronized to send commit information to your web server through the POST service hook. Information should be posted to the `gateway.php` script (**mandatory!**). [See more information][Hook] on how to create a service hook in BitBucket. POST URL should be, for example, `http://mysite.ext/bitbucket-sync/gateway.php`.
 * Start pushing commits to your BitBucket projects and see if the changes are reflected on your web server. Depending on the configuration, you might need to manually trigger the synchronization by accessing the `deploy.php` script through your web server (i.e. `http://mysite.ext/bitbucket-sync/deploy.php`).
 
 
@@ -88,7 +76,6 @@ Note: since files are updated one by one, there is a risk of having the website 
 
 
 
-  [Git]: http://git-scm.com/
   [BitBucket]: https://bitbucket.org/alixandru/bitbucket-sync
   [Hook]: https://confluence.atlassian.com/display/BITBUCKET/POST+hook+management
 
@@ -99,12 +86,19 @@ Firstly the script needs to have access to your BitBucket project files through 
 
 Then the script needs to know where to put the files locally once they are fetched from the BitBucket servers. The branch of the repository to deploy and a few other items can also be configured. 
 
+Optionally, the scripts can be configured to require authorization in order to operate. Different authorization codes can be defined for the `gateway.php` script (which accepts commit information from BitBucket) and for the `deploy.php` script (which triggers the synchronization). The key must be passed through the `key` URL parameter when accessing the scripts. i.e. `deploy.php?key=predefined-deploy-key` or `gateway.php?key=predefined-gw-key`. Note that the BitBucket POST service hook must be updated with the correct URL in this case.
+
 All of this information can be provided in the `config.php` file. Detailed descriptions of all configuration items is contained as comments in the file.
 
 **Important!** Make sure all folders specified in the `config.php` have write permission for the user under which the web-server process runs. This is mandatory in order for the script to be able to store commit meta-data files locally.
 
 
 ## Change log ##
+
+**v2.2.0**
+
+* Added the ability to require authorization when posting commit meta-data (through gateway.php) or when deploying (through deploy.php). Authorization can be done by specifying a previously established key when accessing the scripts. Contributed by [Juha Ryhanen](https://bitbucket.org/ryhanen).
+
 
 **v2.1.0**
 
