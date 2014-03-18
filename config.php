@@ -29,7 +29,7 @@ $CONFIG = array(
 	 * The location where to temporary store commit data sent by BitBucket's 
 	 * Post Service hook. This is the location from where the deploy script 
 	 * will read information about what files to synchronize. The folder
-	 * must exist on the web server and process executing both the gateway 
+	 * must exist on the web server and the process executing both the gateway 
 	 * script and the deploy script (usually a web server daemon), must have 
 	 * read and write access to this folder.
 	 */
