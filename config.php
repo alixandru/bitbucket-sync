@@ -28,9 +28,10 @@ $CONFIG = array(
 	/** 
 	 * The location where to temporary store commit data sent by BitBucket's 
 	 * Post Service hook. This is the location from where the deploy script 
-	 * will read information about what files to synchronize. The process 
-	 * executing both the gateway script and the deploy script (usually a web 
-	 * server daemon), must have read and write access to this folder.
+	 * will read information about what files to synchronize. The folder
+	 * must exist on the web server and process executing both the gateway 
+	 * script and the deploy script (usually a web server daemon), must have 
+	 * read and write access to this folder.
 	 */
 	'commitsFolder' => 'commits',
 	
@@ -47,6 +48,8 @@ $CONFIG = array(
 	 * Whether to perform the file synchronization automatically, immediately 
 	 * after the Post Service hook is triggered, or to skip it, leaving it for
 	 * manual deployment request.
+	 * If left as 'false', syncronization will need to be initiated by invoking 
+	 * deploy.php via the web browser, or through a cron job on the web server 
 	 */
 	'automaticDeployment' => false,
 	
@@ -93,21 +96,36 @@ $CONFIG = array(
  * following pattern is used: [project-name] => [path on the web-server].
  * This allows multiple BitBucket projects to be deployed to different 
  * locations on the web-server's file system.
+ *
+ * Multiple projects example:
+ *
+ * $DEPLOY = array(
+ *	'my-project-name' => '/home/www/site/',
+ *	'my-data' => '/home/www/data/',
+ *	'another-project' => '/home/username/public_html/',
+ *	'user.bitbucket.org' => '/home/www/bbpages/',
+ * );
  */
-$DEPLOY = array(
-	'my-repo' => '/home/www/data/',
-	'cool-site' => '/home/www/site/',
-	'user.bitbucket.org' => '/home/www/bbpages/',
-);
 
+$DEPLOY = array(
+    'my-project-name' => '/home/www/site/',
+);
 
 /** 
  * The branch which will be deployed for each project. If no branch is 
  * specified for a project, the default [deployBranch] will be used. The
  * same semantics as for the deploy locations are used.
+ *
+ * Multiple projects example:
+ * 
+ * $DEPLOY_BRANCH = array(
+ * 	'my-project-name' => 'master',
+ * 	'some-cool-site' => 'development',
+ * );
  */
+
 $DEPLOY_BRANCH = array(
-	'cool-site' => 'development',
+    'my-project-name' => 'master',
 );
 
 

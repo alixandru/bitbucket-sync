@@ -8,7 +8,7 @@ This is a lightweight utility script that synchronizes the local file system wit
 
 This script keeps your website in sync with the updates made on a BitBucket project.
 
-It is intended to be used on a web-server which is reachable from the internet and which can accept POST requests coming from BitBucket servers. It works by getting all the updates from a BitBucket project and applying them to a local copy of the project files. 
+It is intended to be used on a web-server which is reachable from the internet and which can accept POST requests coming from BitBucket servers. It works by getting all the updates from a BitBucket project and applying them to a local copy of the project files.
 
 For example, supposing you have a website which is deployed on a shared-hosting server, and the source code is stored in a private repository in BitBucket. This script allows you to automatically update the deployed website each time you push changes to the BitBucket project. This way, you don't have to manually copy any file from your working directory to the hosting server.
 
@@ -33,23 +33,23 @@ This script requires PHP 5.3+ with **cURL** and **Zip** extensions enabled. It c
 
 ## Operation ##
 
-This script has two complementary modes of operation detailed below. 
+This script has two complementary modes of operation detailed below.
 
 ### 1. Full synchronization ###
 
-The script runs in this mode when it is accessed through the web-server and has the `setup` GET parameter specified in the URL (`deploy.php?setup=project`).  In this mode, the script will get the full repository from BitBucket and deploy it locally. This is achieved through getting a zip archive of the project, extracting it locally and copying its contents over to the project location specified in the configuration file. 
-This operation mode does not necessarily need a POST service hook to be defined in BitBucket for the project and is generally suited for initial set-up of projects that will be kept in sync with this script. 
+The script runs in this mode when it is accessed through the web-server and has the `setup` GET parameter specified in the URL (`deploy.php?setup=my-project-name`).  In this mode, the script will get the full repository from BitBucket and deploy it locally. This is achieved through getting a zip archive of the project, extracting it locally and copying its contents over to the project location specified in the configuration file.
+This operation mode does not necessarily need a POST service hook to be defined in BitBucket for the project and is generally suited for initial set-up of projects that will be kept in sync with this script.
 
 
 #### Steps on how to get a project set up using full synchronization ####
 
-1. If your repository is called *my-library*, you need to define it in the `config.php` file and to specify, at least, a valid location, accessible for writing by the web server process. Optionally you can state the branch from which the deployment will be performed. 
+1. If your repository is called *my-project-name*, you need to define it in the `config.php` file and to specify, at least, a valid location, accessible for writing by the web server process. Optionally you can state the branch from which the deployment will be performed.
 
-2. After this step, simply access the script `deploy.php` with the parameter `setup=my-library` (i.e. `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library`). It is advisable to have *verbose mode* enabled in the configuration file, to see exactly what is happening. 
+2. After this step, simply access the script `deploy.php` with the parameter `setup=my-project-name` (i.e. `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-project-name`). It is advisable to have *verbose mode* enabled in the configuration file, to see exactly what is happening.
 
-   By default, the script will attempt to get the project from a BitBucket repository created under your name (i.e. if your user is `johndoe`, it will try to get the repository `johndoe/my-library`). If the project belongs to a team or to another user, use the URL parameter `team` to specify it. For example, accessing `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library&team=doeteam` will fetch the project `doeteam/my-library`. Useful also for forks.
+   By default, the script will attempt to get the project from a BitBucket repository created under your name (i.e. if your user is `johndoe`, it will try to get the repository `johndoe/my-library`). If the project belongs to a team or to another user, use the URL parameter `team` to specify it. For example, accessing `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-project-name&team=doeteam` will fetch the project `doeteam/my-project-name`. Useful also for forks.
 
-   Full synchronization mode also supports cleaning up the destination folder before attempting to import the zip archive. This can be done by specifying the `clean` URL parameter (i.e. `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-library&clean=1`). When this parameter is present, the contents of the project location folder (specified in the configuration file) will be deleted before performing the actual import. Use this with caution.
+   Full synchronization mode also supports cleaning up the destination folder before attempting to import the zip archive. This can be done by specifying the `clean` URL parameter (i.e. `http://mysite.ext/bitbucket-sync/deploy.php?setup=my-project-name&clean=1`). When this parameter is present, the contents of the project location folder (specified in the configuration file) will be deleted before performing the actual import. Use this with caution.
 
    Once the import is complete, you can go on and setup the service hook in BitBucket and start pushing changes to your project.
 
@@ -68,7 +68,7 @@ This is the default mode which is used when the `deploy.php` script is accessed 
 
 3. The `gateway.php` script records the request from BitBucket in a file stored locally in `commits` folder. This file will then be read when performing the actual sync. Storing data in a local file allows retrying the synchronization in case of failure.
 
-4. The `deploy.php` script is invoked (either automatically from `gateway.php`, manually through a browser, or through a cron job on the web-server). This script will perform the actual synchronization by reading the local file containing the commit meta-data and requesting from BitBucket the content of files which have been changed. It will then update the local project files, one by one. After all files are updated, the meta-data file from `commits` folder is deleted to prevent synchronizing the same changes again. 
+4. The `deploy.php` script is invoked (either automatically from `gateway.php`, manually through a browser, or through a cron job on the web-server). This script will perform the actual synchronization by reading the local file containing the commit meta-data and requesting from BitBucket the content of files which have been changed. It will then update the local project files, one by one. After all files are updated, the meta-data file from `commits` folder is deleted to prevent synchronizing the same changes again.
 
 5. If synchronization fails, the commit files (containing the commit meta-data) are not deleted, but preserved for later processing. They can be processed again by specifying the `retry` GET parameter when invoking `deploy.php` (i.e. `deploy.php?retry`).
 
@@ -84,7 +84,7 @@ Note: since files are updated one by one, there is a risk of having the website 
 
 Firstly the script needs to have access to your BitBucket project files through the BitBucket API. If your project is private, you need to provide the user name and password of a BitBucket account with read access to the repository.
 
-Then the script needs to know where to put the files locally once they are fetched from the BitBucket servers. The branch of the repository to deploy and a few other items can also be configured. 
+Then the script needs to know where to put the files locally once they are fetched from the BitBucket servers. The branch of the repository to deploy and a few other items can also be configured.
 
 Optionally, the scripts can be configured to require authorization in order to operate. Different authorization codes can be defined for the `gateway.php` script (which accepts commit information from BitBucket) and for the `deploy.php` script (which triggers the synchronization). The key must be passed through the `key` URL parameter when accessing the scripts. i.e. `deploy.php?key=predefined-deploy-key` or `gateway.php?key=predefined-gw-key`. Note that the BitBucket POST service hook must be updated with the correct URL in this case.
 
