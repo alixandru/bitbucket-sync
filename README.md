@@ -95,6 +95,11 @@ All of this information can be provided in the `config.php` file. Detailed descr
 
 ## Change log ##
 
+**v2.2.1**
+
+* Various fixes and improvements. Contributed by [n4r-c0m](https://bitbucket.org/n4r-c0m).
+
+
 **v2.2.0**
 
 * Added the ability to require authorization when posting commit meta-data (through gateway.php) or when deploying (through deploy.php). Authorization can be done by specifying a previously established key when accessing the scripts. Contributed by [Juha Ryhanen](https://bitbucket.org/ryhanen).
@@ -132,4 +137,3 @@ This code has been tested with Git repositories only, however Mercurial projects
 
 ## License ##
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
-
