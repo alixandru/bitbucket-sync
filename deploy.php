@@ -144,14 +144,13 @@ function syncFull($key, $repository) {
 	$repoUrl = (!empty($_GET['team']) ? $_GET['team'] : $CONFIG['apiUser']) . "/$repository/";
 	$branchUrl = 'get/' . $deployBranch . '.zip';
 	
-	// get the archive
-	loginfo(" * Fetching archive from $baseUrl$repoUrl$branchUrl\n");
-	$contents = getFileContents($baseUrl . $repoUrl . $branchUrl);
-	
 	// store the zip file temporary
 	$zipFile = 'full-' . time() . '-' . rand(0, 100);
 	$zipLocation = $CONFIG['commitsFolder'] . (substr($CONFIG['commitsFolder'], -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
-	file_put_contents($zipLocation . $zipFile, $contents);
+
+	// get the archive
+	loginfo(" * Fetching archive from $baseUrl$repoUrl$branchUrl\n");
+	$result = getFileContents($baseUrl . $repoUrl . $branchUrl, $zipLocation . $zipFile);
 
 	// extract contents
 	loginfo(" * Extracting archive to $zipLocation\n");
@@ -347,7 +346,7 @@ function deployChangeSet( $postData ) {
 /**
  * Gets a remote file contents using CURL
  */
-function getFileContents($url) {
+function getFileContents($url, $writeToFile = false) {
 	global $CONFIG;
 	
 	// create a new cURL resource
@@ -357,7 +356,17 @@ function getFileContents($url) {
 	curl_setopt($ch, CURLOPT_URL, $url);
 	
 	curl_setopt($ch, CURLOPT_HEADER, false);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    if ($writeToFile) {
+        $out = fopen($writeToFile, "wb");
+        if ($out == FALSE) {
+            throw new Exception("Could not open file `$writeToFile` for writing");
+        }
+        curl_setopt($ch, CURLOPT_FILE, $out);
+    } else {
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    }
+
 	curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)");
 	
 	curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC ) ;
