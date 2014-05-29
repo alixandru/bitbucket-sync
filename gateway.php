@@ -59,7 +59,11 @@ if(isset($_GET['key'])) {
 if ( !$CONFIG['requireAuthentication'] || $CONFIG[ 'requireAuthentication' ] && $CONFIG[ 'gatewayAuthKey' ] == $key) {
 	if(!empty($_POST['payload'])) {
 		// store commit data
-		file_put_contents( $location . $file, stripslashes(urldecode($_POST['payload'])));
+		if (get_magic_quotes_gpc()) {
+			file_put_contents( $location . $file, stripslashes($_POST['payload']));
+		} else {
+			file_put_contents( $location . $file, $_POST['payload']);
+		}
 		
 		// process the commit data right away
 		if($CONFIG['automaticDeployment']) {
