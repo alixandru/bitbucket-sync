@@ -70,22 +70,19 @@ $CONFIG = array(
 	 *
 	 * While not required, bitbucket-sync is potentially left open to control
 	 * by strangers should an authentication key not be set.
- 	*
+ 	 *
 	 * Keys can be identical, or you can set unique values for each key.
 	 *
- 	* 'deployAuthKey' is typically used in the deploy URL
- 	* Example: http://example.com/bitbucket-sync/deploy.php?key=value
- 	*
- 	* 'gatewayAuthKey' is typically used by the Post Service Hook.
- 	* Example: http://example.com/bitbucket-sync/gateway.php?key=value
+ 	 * 'deployAuthKey' is typically used in the deploy URL
+ 	 * Example: http://example.com/bitbucket-sync/deploy.php?key=value
+ 	 *
+ 	 * 'gatewayAuthKey' is typically used by the Post Service Hook.
+ 	 * Example: http://example.com/bitbucket-sync/gateway.php?key=value
 	 *
 	 */
-
 	'requireAuthentication' => false,
-
 	'deployAuthKey' => '',
-
-  'gatewayAuthKey' => '',
+	'gatewayAuthKey' => '',
 
 );
 
@@ -108,6 +105,8 @@ $CONFIG = array(
  *		'user.bitbucket.org' => '/home/www/bbpages/',
  * 	);
  *
+ * Make sure all these paths are writable! It is also recommended to use
+ * absolute paths in order to avoid any path issues.
  */
 
 $DEPLOY = array(

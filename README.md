@@ -25,7 +25,7 @@ This script requires PHP 5.3+ with **cURL** and **Zip** extensions enabled. It c
 * Get the source code for this script from [BitBucket][], either using Git, or by downloading directly.
 * Copy the source files to your web-server in a location which is accessible from the internet (usually `public_html`, or `www` folders).
 * Adjust configuration file `config.php` with information related to your environment and BitBucket projects that you want to keep in sync (see **Configuration** section).
-* Make all folders involved in the sync write-accessible (see `config.php` for details).
+* Make sure all folders involved in the sync process are **write-accessible** (see `config.php` for details).
 * Perform an initial import of each project, through which the project files are copied to the web-server file-system (see **Operation** section below).
 * Configure each BitBucket project that you want to keep synchronized to send commit information to your web server through the POST service hook. Information should be posted to the `gateway.php` script (**mandatory!**). [See more information][Hook] on how to create a service hook in BitBucket. POST URL should be, for example, `http://mysite.ext/bitbucket-sync/gateway.php`.
 * Start pushing commits to your BitBucket projects and see if the changes are reflected on your web server. Depending on the configuration, you might need to manually trigger the synchronization by accessing the `deploy.php` script through your web server (i.e. `http://mysite.ext/bitbucket-sync/deploy.php`).
