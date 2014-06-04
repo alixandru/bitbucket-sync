@@ -42,12 +42,11 @@ $CONFIG = array(
 
 	/**
 	 * Whether to perform the file synchronization automatically, immediately
-	 * after the Post Service Hook is triggered, or to skip it, leaving it for
-	 * manual deployment request.
-	 * If left as 'false', syncronization will need to be initiated by invoking
-	 * deploy.php via the web browser, or through a cron job on the web server
+	 * after the Post Service Hook is triggered, or leave it for manual deployment.
+	 * If set on 'false', synchronization will need to be initiated by invoking
+	 * deploy.php via a web browser, or through a cron-job on the web server
 	 */
-	'automaticDeployment' => false,
+	'automaticDeployment' => true,
 
 	/**
 	 * The default branch to use for getting the changed files, if no specific

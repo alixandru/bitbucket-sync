@@ -68,7 +68,7 @@ This is the default mode which is used when the `deploy.php` script is accessed 
 
 3. The `gateway.php` script records the request from BitBucket in a file stored locally in `commits` folder. This file will then be read when performing the actual sync. Storing data in a local file allows retrying the synchronization in case of failure.
 
-4. The `deploy.php` script is invoked (either automatically from `gateway.php`, manually through a browser, or through a cron job on the web-server). This script will perform the actual synchronization by reading the local file containing the commit meta-data and requesting from BitBucket the content of files which have been changed. It will then update the local project files, one by one. After all files are updated, the meta-data file from `commits` folder is deleted to prevent synchronizing the same changes again.
+4. The `deploy.php` script is invoked (either automatically from `gateway.php` if configured to do so, manually by accessing it in a browser, or through a cron-job on the web-server). This script will perform the actual synchronization by reading the local file containing the commit meta-data and requesting from BitBucket the content of files which have been changed. It will then update the local project files, one by one. After all files are updated, the meta-data file from `commits` folder is deleted to prevent synchronizing the same changes again.
 
 5. If synchronization fails, the commit files (containing the commit meta-data) are not deleted, but preserved for later processing. They can be processed again by specifying the `retry` GET parameter when invoking `deploy.php` (i.e. `deploy.php?retry`).
 
