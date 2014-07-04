@@ -114,14 +114,21 @@ if(isset($_GET['setup']) && !empty($_GET['setup'])) {
  */
 function syncFull($key, $repository) {
 	global $CONFIG, $DEPLOY, $DEPLOY_BRANCH;
+	$shouldClean = isset($_GET['clean']) && $_GET['clean'] == 1;
 
 	// check authentication key if authentication is required
-	if ( $CONFIG[ 'requireAuthentication' ] && $CONFIG[ 'deployAuthKey' ] != $key) {
+	if ( $shouldClean && $CONFIG[ 'deployAuthKey' ] == '' ) {
+		// when cleaning, the auth key is mandatory, regardless of requireAuthentication flag
+		http_response_code(403);
+		echo " # Cannot clean right now. A non-empty deploy auth key must be defined for cleaning.";
+		return false;
+	} else if ( ($CONFIG[ 'requireAuthentication' ] || $shouldClean) && $CONFIG[ 'deployAuthKey' ] != $key ) {
 		http_response_code(401);
+		echo " # Unauthorized." . ($shouldClean && empty($key) ? " The deploy auth key must be provided when cleaning." : "");
 		return false;
 	}
-
-	echo "<pre>\nBitBucket Sync - Full Deploy\n=============================\n";
+	
+	echo "<pre>\nBitBucket Sync - Full Deploy\n============================\n";
 	
 	// determine the destination of the deployment
 	if( array_key_exists($repository, $DEPLOY) ) {
@@ -174,7 +181,7 @@ function syncFull($key, $repository) {
 	}
 	
 	// delete the old files, if instructed to do so
-	if( isset($_GET['clean']) && $_GET['clean'] == 1 ) {
+	if( $shouldClean ) {
 		loginfo(" * Deleting old content from $deployLocation\n");
 		if( deltree($deployLocation) === false ) {
 			echo " # Unable to completely remove the old files from $deployLocation. Process will continue anyway!\n";
@@ -210,10 +217,11 @@ function syncChanges($key, $retry = false) {
 	// check authentication key if authentication is required
 	if ( $CONFIG[ 'requireAuthentication' ] && $CONFIG[ 'deployAuthKey' ] != $key) {
 		http_response_code(401);
+		echo " # Unauthorized";
 		return false;
 	}
 
-	echo "<pre>\nBitBucket Sync\n===============\n";
+	echo "<pre>\nBitBucket Sync\n==============\n";
 	
 	$prefix = $CONFIG['commitsFilenamePrefix'];
 	if($retry) {
@@ -409,6 +417,16 @@ function cptree($dir, $dst) {
 function deltree($dir, $deleteParent = false) {
 	if (!file_exists($dir)) return false;
 	if (!is_dir($dir) || is_link($dir)) return unlink($dir);
+	// prevent deletion of current directory
+	$cdir = realpath($dir);
+	$adir = dirname(__FILE__);
+	$cdir = $cdir . (substr($cdir, -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
+	$adir = $adir . (substr($adir, -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
+	if( $cdir == $adir ) {
+		loginfo(" * Contents of '" . basename($adir) . "' folder will not be cleaned up.\n");
+		return true;
+	}
+	// process contents of this dir
 	$files = array_diff(scandir($dir), array('.','..'));
 	$sep = (substr($dir, -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
 	foreach ($files as $file) {
