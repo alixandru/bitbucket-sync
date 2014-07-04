@@ -301,47 +301,51 @@ function deployChangeSet( $postData ) {
 	
 	// loop through commits
 	foreach($o->commits as $commit) {
-		// if commit was on the branch we're watching, deploy changes
-		if( $commit->branch == $deployBranch || 
-				(!empty($commit->branches) && array_search($deployBranch, $commit->branches) !== false)) {
-			// if there are any pending files, merge them in
-			$files = array_merge($pending, $commit->files);
-			
-			// clean pending, if any
-			$pending = array();
-			
-			// get a list of files
-			foreach($files as $file) {
-				if( $file->type == 'modified' || $file->type == 'added' ) {
-					if( empty($processed[$file->file]) ) {
-						$processed[$file->file] = 1; // mark as processed
-						$contents = getFileContents($baseUrl . $apiUrl . $repoUrl . $rawUrl . $branchUrl . $file->file);
-						if( $contents == 'Not Found' ) {
-							// try one more time, BitBucket gets weirdo sometimes
+		// check if the branch is known at this step
+		if(!empty($commit->branch) || !empty($commit->branches)) {
+			// if commit was on the branch we're watching, deploy changes
+			if( $commit->branch == $deployBranch || 
+					(!empty($commit->branches) && array_search($deployBranch, $commit->branches) !== false)) {
+				// if there are any pending files, merge them in
+				$files = array_merge($pending, $commit->files);
+				
+				// get a list of files
+				foreach($files as $file) {
+					if( $file->type == 'modified' || $file->type == 'added' ) {
+						if( empty($processed[$file->file]) ) {
+							$processed[$file->file] = 1; // mark as processed
 							$contents = getFileContents($baseUrl . $apiUrl . $repoUrl . $rawUrl . $branchUrl . $file->file);
+							if( $contents == 'Not Found' ) {
+								// try one more time, BitBucket gets weirdo sometimes
+								$contents = getFileContents($baseUrl . $apiUrl . $repoUrl . $rawUrl . $branchUrl . $file->file);
+							}
+							
+							if( $contents != 'Not Found' ) {
+								if( !is_dir( dirname($deployLocation . $file->file) ) ) {
+									// attempt to create the directory structure first
+									mkdir( dirname($deployLocation . $file->file), 0755, true );
+								}
+								file_put_contents( $deployLocation . $file->file, $contents );
+								loginfo("    - Synchronized $file->file\n");
+								
+							} else {
+								echo "    ! Could not get file contents for $file->file\n";
+								flush();
+							}
 						}
 						
-						if( $contents != 'Not Found' ) {
-							if( !is_dir( dirname($deployLocation . $file->file) ) ) {
-								// attempt to create the directory structure first
-								mkdir( dirname($deployLocation . $file->file), 0755, true );
-							}
-							file_put_contents( $deployLocation . $file->file, $contents );
-							loginfo("    - Synchronized $file->file\n");
-							
-						} else {
-							echo "    ! Could not get file contents for $file->file\n";
-							flush();
-						}
+					} else if( $file->type == 'removed' ) {
+						unlink( $deployLocation . $file->file );
+						$processed[$file->file] = 0; // to allow for subsequent re-creating of this file
+						loginfo("    - Removed $file->file\n");
 					}
-					
-				} else if( $file->type == 'removed' ) {
-					unlink( $deployLocation . $file->file );
-					$processed[$file->file] = 0; // to allow for subsequent re-creating of this file
-					loginfo("    - Removed $file->file\n");
 				}
 			}
-		} else if(empty($commit->branch) && empty($commit->branches)) {
+			
+			// clean pending files, if any
+			$pending = array();
+		
+		} else {
 			// unknown branch for now, keep these files
 			$pending = array_merge($pending, $commit->files);
 		}
