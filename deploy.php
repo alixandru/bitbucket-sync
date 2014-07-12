@@ -139,7 +139,7 @@ function syncFull($key, $repository) {
 	}
 	
 	// determine from which branch to get the data
-	if( array_key_exists($repository, $DEPLOY_BRANCH) ) {
+	if( isset($DEPLOY_BRANCH) && array_key_exists($repository, $DEPLOY_BRANCH) ) {
 		$deployBranch = $DEPLOY_BRANCH[ $repository ];
 	} else {
 		// use the default branch
