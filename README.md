@@ -22,13 +22,14 @@ This script requires PHP 5.3+ with **cURL** and **Zip** extensions enabled. It c
 
 ### Installation instructions ###
 
-* Get the source code for this script from [BitBucket][], either using Git, or by downloading directly.
-* Copy the source files to your web-server in a location which is accessible from the internet (usually `public_html`, or `www` folders).
-* Adjust configuration file `config.php` with information related to your environment and BitBucket projects that you want to keep in sync (see **Configuration** section).
-* Make sure all folders involved in the sync process are **write-accessible** (see `config.php` for details).
-* Perform an initial import of each project, through which the project files are copied to the web-server file-system (see **Operation** section below).
-* Configure each BitBucket project that you want to keep synchronized to send commit information to your web server through the POST service hook. Information should be posted to the `gateway.php` script (**mandatory!**). [See more information][Hook] on how to create a service hook in BitBucket. POST URL should be, for example, `http://mysite.ext/bitbucket-sync/gateway.php`.
-* Start pushing commits to your BitBucket projects and see if the changes are reflected on your web server. Depending on the configuration, you might need to manually trigger the synchronization by accessing the `deploy.php` script through your web server (i.e. `http://mysite.ext/bitbucket-sync/deploy.php`).
+  1. Get the source code for this script from [BitBucket][], either using Git, or by downloading directly.
+  2. Copy the source files to your web-server in a location which is accessible from the internet (usually `public_html`, or `www` folders).
+  3. Rename `config.sample.php` file to `config.php` and adjust it with information related to your environment and BitBucket projects that you want to keep in sync (see **Configuration** section).
+  4. Make sure all folders involved in the sync process are **write-accessible** (see `config.php` for details).
+  5. Perform an initial import of each project, through which the project files are copied to the web-server file-system (see **Operation** section below).
+  6. Configure the BitBucket projects to send commit information to your web server through the POST service hook. The hook must point to the `gateway.php` script (do this for each repository that needs to be synchronized!). [See more information][Hook] on how to create a service hook in BitBucket. 
+  POST URL should be, for example, `http://mysite.ext/bitbucket-sync/gateway.php`.
+  7. Start pushing commits to your BitBucket projects and see if the changes are reflected on your web server.
 
 
 ## Operation ##
@@ -68,7 +69,7 @@ This is the default mode which is used when the `deploy.php` script is accessed 
 
 3. The `gateway.php` script records the request from BitBucket in a file stored locally in `commits` folder. This file will then be read when performing the actual sync. Storing data in a local file allows retrying the synchronization in case of failure.
 
-4. The `deploy.php` script is invoked (either automatically from `gateway.php` if configured to do so, manually by accessing it in a browser, or through a cron-job on the web-server). This script will perform the actual synchronization by reading the local file containing the commit meta-data and requesting from BitBucket the content of files which have been changed. It will then update the local project files, one by one. After all files are updated, the meta-data file from `commits` folder is deleted to prevent synchronizing the same changes again.
+4. You access the `deploy.php` script (i.e. by going to `http://mysite.ext/bitbucket-sync/deploy.php` in your browser) or, depending on the configuration, the script is invoked automatically from `gateway.php`. This script will perform the actual synchronization by reading the local file with commit meta-data and requesting from BitBucket the content of files which have been changed. It will then update the local project files, one by one. After all files are updated, the meta-data file from `commits` folder is deleted to prevent synchronizing the same changes again.
 
 5. If synchronization fails, the commit files (containing the commit meta-data) are not deleted, but preserved for later processing. They can be processed again by specifying the `retry` GET parameter when invoking `deploy.php` (i.e. `deploy.php?retry`).
 
@@ -88,12 +89,22 @@ Then the script needs to know where to put the files locally once they are fetch
 
 Optionally, the scripts can be configured to require authorization in order to operate. Different authorization codes can be defined for the `gateway.php` script (which accepts commit information from BitBucket) and for the `deploy.php` script (which triggers the synchronization). The key must be passed through the `key` URL parameter when accessing the scripts. i.e. `deploy.php?key=predefined-deploy-key` or `gateway.php?key=predefined-gw-key`. Note that the BitBucket POST service hook must be updated with the correct URL in this case.
 
-All of this information can be provided in the `config.php` file. Detailed descriptions of all configuration items is contained as comments in the file.
+All of this information can be provided in the `config.php` file (initially included in the distribution as `config.sample.php`). Detailed descriptions of all configuration items is contained as comments in the file.
 
 **Important!** Make sure all folders specified in the `config.php` have write permission for the user under which the web-server process runs. This is mandatory in order for the script to be able to store commit meta-data files locally.
 
 
 ## Change log ##
+
+**v2.2.2**
+
+* Empty folders which resulted from renamed files during deployment will be deleted
+* Code will skip own `bitbucket-sync` folder when performing clean up (at full sync)
+* Corrected an issue which caused files modified on other branches to be needlessly deployed on the watched branch
+* Included an empty `commits` folder in the distribution
+* Changed `automaticDeployment` variable from `config.php` to `true` so that sync starts automatically by default
+* Renamed the configuration file to `config.sample.php`
+
 
 **v2.2.1**
 

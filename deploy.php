@@ -213,6 +213,7 @@ function syncFull($key, $repository) {
 function syncChanges($key, $retry = false) {
 	global $CONFIG;
 	global $processed;
+	global $rmdirs;
 	
 	// check authentication key if authentication is required
 	if ( $CONFIG[ 'requireAuthentication' ] && $CONFIG[ 'deployAuthKey' ] != $key) {
@@ -229,6 +230,7 @@ function syncChanges($key, $retry = false) {
 	}
 	
 	$processed = array();
+	$rmdirs = array();
 	$location = $CONFIG['commitsFolder'] . (substr($CONFIG['commitsFolder'], -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
 	$commits = @scandir($location, 0);
 
@@ -256,6 +258,14 @@ function syncChanges($key, $retry = false) {
 			}
 		}
 	}
+	
+	// remove old (renamed) directories which are empty
+	foreach($rmdirs as $dir => $name) {
+		if(@rmdir($dir)) {
+			echo " * Removed empty directory $name\n";
+		}
+	}
+	
 	echo "\nFinished processing commits.\n</pre>";
 }
 
@@ -266,6 +276,7 @@ function syncChanges($key, $retry = false) {
 function deployChangeSet( $postData ) {
 	global $CONFIG, $DEPLOY, $DEPLOY_BRANCH;
 	global $processed;
+	global $rmdirs;
 	
 	$o = json_decode($postData);
 	if( !$o ) {
@@ -337,6 +348,7 @@ function deployChangeSet( $postData ) {
 					} else if( $file->type == 'removed' ) {
 						unlink( $deployLocation . $file->file );
 						$processed[$file->file] = 0; // to allow for subsequent re-creating of this file
+						$rmdirs[dirname($deployLocation . $file->file)] = dirname($file->file);
 						loginfo("    - Removed $file->file\n");
 					}
 				}
