@@ -282,7 +282,7 @@ function deployChangeSet( $postData ) {
 	}
 	
 	// determine from which branch to get the data
-	if( array_key_exists($o->repository->slug, $DEPLOY_BRANCH) ) {
+	if( isset($DEPLOY_BRANCH) && array_key_exists($o->repository->slug, $DEPLOY_BRANCH) ) {
 		$deployBranch = $DEPLOY_BRANCH[ $o->repository->slug ];
 	} else {
 		// use the default branch
