@@ -69,7 +69,14 @@ if ( !$CONFIG['requireAuthentication'] || $CONFIG[ 'requireAuthentication' ] && 
 		if($CONFIG['automaticDeployment']) {
 				$key = $CONFIG['deployAuthKey'];
 				require_once( 'deploy.php' );
-		}	
+		}
+		
+	} else if(isset($_GET['test'])) {
+		if(file_put_contents( $location . 'test', 'Files can be created by the gateway script.') === false) {
+			echo "This script does not have access to create files in $location";
+		} else {
+			echo "Files can be created by this script in $location";
+		}
 	}
 }
 else http_response_code(401);
