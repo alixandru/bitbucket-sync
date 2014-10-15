@@ -96,6 +96,13 @@ All of this information can be provided in the `config.php` file (initially incl
 
 ## Change log ##
 
+**v2.2.3**
+
+* Correct issue with cURL and SSLv3. Contributed by [Benoit Lapointe](https://bitbucket.org/triben)
+* More verbose in case errors occur
+* Added the possibility to test if the `commits` folder is writable
+
+
 **v2.2.2**
 
 * Empty folders which resulted from renamed files during deployment will be deleted
