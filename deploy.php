@@ -397,7 +397,8 @@ function getFileContents($url, $writeToFile = false) {
 	if(!empty($CONFIG['apiUser'])) {
 		curl_setopt($ch, CURLOPT_USERPWD, $CONFIG['apiUser'] . ':' . $CONFIG['apiPassword']);
 	}
-	curl_setopt($ch, CURLOPT_SSLVERSION,3);
+	// Remove to leave curl choose the best version
+	//curl_setopt($ch, CURLOPT_SSLVERSION,3); 
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 	
