@@ -241,11 +241,10 @@ function syncChanges($key, $retry = false) {
 			// get file contents and parse it
 			$json = @file_get_contents($location . $file);
 			$del = true;
+			echo " * Processing file $file\n";
 			if(!$json || !deployChangeSet( $json )) {
-				echo " # Could not process file $file!\n$json\n\n";
+				echo " # Could not process file $file!\n";
 				$del = false;
-			} else {
-				echo " * Processed commit file $file\n";
 			}
 			flush();
 			
@@ -281,6 +280,7 @@ function deployChangeSet( $postData ) {
 	$o = json_decode($postData);
 	if( !$o ) {
 		// could not parse ?
+		echo "    ! Invalid JSON file\n";
 		return false;
 	}
 	
@@ -289,6 +289,7 @@ function deployChangeSet( $postData ) {
 		$deployLocation = $DEPLOY[ $o->repository->slug ] . (substr($DEPLOY[ $o->repository->slug ], -1) == DIRECTORY_SEPARATOR ? '' : DIRECTORY_SEPARATOR);
 	} else {
 		// unknown repository ?
+		echo "    ! Repository not configured for sync: {$o->repository->slug}\n";
 		return false;
 	}
 	
@@ -313,6 +314,7 @@ function deployChangeSet( $postData ) {
 	// loop through commits
 	foreach($o->commits as $commit) {
 		// check if the branch is known at this step
+		loginfo("    > Change-set: " . trim($commit->message) . "\n");
 		if(!empty($commit->branch) || !empty($commit->branches)) {
 			// if commit was on the branch we're watching, deploy changes
 			if( $commit->branch == $deployBranch || 
@@ -331,16 +333,16 @@ function deployChangeSet( $postData ) {
 								$contents = getFileContents($baseUrl . $apiUrl . $repoUrl . $rawUrl . $branchUrl . $file->file);
 							}
 							
-							if( $contents != 'Not Found' ) {
+							if( $contents != 'Not Found' && $contents !== false ) {
 								if( !is_dir( dirname($deployLocation . $file->file) ) ) {
 									// attempt to create the directory structure first
 									mkdir( dirname($deployLocation . $file->file), 0755, true );
 								}
 								file_put_contents( $deployLocation . $file->file, $contents );
-								loginfo("    - Synchronized $file->file\n");
+								loginfo("      - Synchronized $file->file\n");
 								
 							} else {
-								echo "    ! Could not get file contents for $file->file\n";
+								echo "      ! Could not get file contents for $file->file\n";
 								flush();
 							}
 						}
@@ -349,7 +351,7 @@ function deployChangeSet( $postData ) {
 						unlink( $deployLocation . $file->file );
 						$processed[$file->file] = 0; // to allow for subsequent re-creating of this file
 						$rmdirs[dirname($deployLocation . $file->file)] = dirname($file->file);
-						loginfo("    - Removed $file->file\n");
+						loginfo("      - Removed $file->file\n");
 					}
 				}
 			}
@@ -404,6 +406,10 @@ function getFileContents($url, $writeToFile = false) {
 	
 	// grab URL
 	$data = curl_exec($ch);
+	
+	if(curl_errno($ch) != 0) {
+		echo "      ! File transfer error: " . curl_error($ch) . "\n";
+	}
 	
 	// close cURL resource, and free up system resources
 	curl_close($ch);
