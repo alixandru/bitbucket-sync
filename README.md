@@ -75,6 +75,7 @@ This is the default mode which is used when the `deploy.php` script is accessed 
 
 Note: since files are updated one by one, there is a risk of having the website in an inconsistent state until all files are updated. It is recommended to trigger the actual synchronization (step 4) only when there is a low activity on the website.
 
+Important: if there are a lot of files added/changed/deleted in a commit, it is recommended to trigger a full synchronization, instead of an incremental one, due to the possibility for BitBucket to truncate the list of files in the commit meta-data, which might lead to an incomplete deployment.
 
 
   [BitBucket]: https://bitbucket.org/alixandru/bitbucket-sync
@@ -93,6 +94,11 @@ All of this information can be provided in the `config.php` file (initially incl
 
 **Important!** Make sure all folders specified in the `config.php` have write permission for the user under which the web-server process runs. This is mandatory in order for the script to be able to store commit meta-data files locally.
 
+## Important Notice Regarding BitBucket Services ##
+
+This script requires the POST service to be setup in order to be able to provide incremental (commit) synchronization. The new web-hooks service provided by BitBucket is different from POST service and provides different data in the payload, which is insufficient for the script's way of operating (namely, the web-hooks payloads do not contain the list of modified files). This makes this script unusable with web-hooks.
+
+As long as the POST service is still provided by Bitbucket, this script will continue to function properly (using POST service integration).
 
 ## Change log ##
 
