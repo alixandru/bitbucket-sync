@@ -8,7 +8,7 @@ How to deploy your BitBucket repository to a remote site through FTP, using BitB
 
 1. You can use the following `bitbucket-pipelines.yml` file to get the same functionality as this script:
 
-      image: samueldebruyn/debian-git
+        image: samueldebruyn/debian-git
         
         pipelines:
           default:
