@@ -2,10 +2,9 @@
 
 
 __Important update!__
-This script is now obsolete. Even though it might still work properly, the recommended way to deploy files efficiently to a remote site is through the [BitBucket Pipelines](https://confluence.atlassian.com/bitbucket/bitbucket-pipelines-792496469.html) feature.
-----
+This script is now obsolete. Even though it still works properly at the moment, the recommended way to deploy files efficiently to a remote site is through the [BitBucket Pipelines](https://confluence.atlassian.com/bitbucket/bitbucket-pipelines-792496469.html) feature.
 
-How to set it up:
+How to deploy your BitBucket repository to a remote site through FTP, using BitBucket Pipelines and git-ftp:
 
 1. You can use the following `bitbucket-pipelines.yml` file to get the same functionality as this script:
 
@@ -24,6 +23,8 @@ How to set it up:
 
 2. Then in your Settings area of your project, go to Pipelines -> Environment Variables and define `FTP_USERNAME` and `FTP_PASSWORD` variables with correct values. 
 3. After the first push, BitBucket will run the pipeline which will initiate the deployment. Once done, change the `bitbucket-pipelines.yml` file so that the command is `git ftp push` instead of `git ftp init`.
+
+If the limitations imposed for the free tier by BitBucket (in build minutes) are preventing you from using Pipelines, then you can still use this project.
 
 ---------------------------------------------
 
@@ -128,6 +129,12 @@ This script requires the POST service to be setup in order to be able to provide
 As long as the POST service is still provided by Bitbucket, this script will continue to function properly (using POST service integration).
 
 ## Change log ##
+
+**v2.2.4**
+
+* If getting a file from BitBucket fails, the entire change-set is marked as failed so it can be retried later.
+* Script marked as obsolete in favour of BitBucket Pipelines. It is still fully functional, but feature requests will not be taken into account.
+
 
 **v2.2.3**
 

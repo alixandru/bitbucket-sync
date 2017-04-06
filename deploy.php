@@ -310,6 +310,7 @@ function deployChangeSet( $postData ) {
 	
 	// prepare to get the files
 	$pending = array();
+	$failures = false;
 	
 	// loop through commits
 	foreach($o->commits as $commit) {
@@ -328,12 +329,12 @@ function deployChangeSet( $postData ) {
 						if( empty($processed[$file->file]) ) {
 							$processed[$file->file] = 1; // mark as processed
 							$contents = getFileContents($baseUrl . $apiUrl . $repoUrl . $rawUrl . $branchUrl . $file->file);
-							if( $contents == 'Not Found' ) {
+							if( $contents == 'Not Found' || !$contents ) {
 								// try one more time, BitBucket gets weirdo sometimes
 								$contents = getFileContents($baseUrl . $apiUrl . $repoUrl . $rawUrl . $branchUrl . $file->file);
 							}
 							
-							if( $contents != 'Not Found' && $contents !== false ) {
+							if( $contents != 'Not Found' && $contents !== false && !empty($contents) ) {
 								if( !is_dir( dirname($deployLocation . $file->file) ) ) {
 									// attempt to create the directory structure first
 									mkdir( dirname($deployLocation . $file->file), 0755, true );
@@ -342,6 +343,8 @@ function deployChangeSet( $postData ) {
 								loginfo("      - Synchronized $file->file\n");
 								
 							} else {
+								$processed[$file->file] = 0;
+								$failures = true;
 								echo "      ! Could not get file contents for $file->file\n";
 								flush();
 							}
@@ -365,7 +368,7 @@ function deployChangeSet( $postData ) {
 		}
 	}
 	
-	return true;
+	return !$failures;
 }
 
 
@@ -380,18 +383,18 @@ function getFileContents($url, $writeToFile = false) {
 	
 	// set URL and other appropriate options
 	curl_setopt($ch, CURLOPT_URL, $url);
-	
+	curl_setopt($ch, CURLOPT_VERBOSE, false);
 	curl_setopt($ch, CURLOPT_HEADER, false);
 
-    if ($writeToFile) {
-        $out = fopen($writeToFile, "wb");
-        if ($out == FALSE) {
-            throw new Exception("Could not open file `$writeToFile` for writing");
-        }
-        curl_setopt($ch, CURLOPT_FILE, $out);
-    } else {
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    }
+	if ($writeToFile) {
+		$out = fopen($writeToFile, "wb");
+		if ($out == FALSE) {
+			throw new Exception("Could not open file `$writeToFile` for writing");
+		}
+		curl_setopt($ch, CURLOPT_FILE, $out);
+	} else {
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	}
 
 	curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)");
 	
