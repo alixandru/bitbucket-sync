@@ -1,8 +1,35 @@
 # BitBucket Sync #
 
 
-This is a lightweight utility script that synchronizes the local file system with updates from a BitBucket project.
+__Important update!__
+This script is now obsolete. Even though it might still work properly, the recommended way to deploy files efficiently to a remote site is through the [BitBucket Pipelines](https://confluence.atlassian.com/bitbucket/bitbucket-pipelines-792496469.html) feature.
+----
 
+How to set it up:
+
+1. You can use the following `bitbucket-pipelines.yml` file to get the same functionality as this script:
+
+      image: samueldebruyn/debian-git
+        
+        pipelines:
+          default:
+            - step:
+              script:
+                - echo "Pipeline Init"
+                - apt-get update
+                - apt-get -qq install git-ftp
+                - echo "Initiating Push"
+                - git ftp init --user $FTP_USERNAME --passwd $FTP_PASSWORD ftp://ftp.change-this.ro/
+                - echo "Done Pushing"
+
+2. Then in your Settings area of your project, go to Pipelines -> Environment Variables and define `FTP_USERNAME` and `FTP_PASSWORD` variables with correct values. 
+3. After the first push, BitBucket will run the pipeline which will initiate the deployment. Once done, change the `bitbucket-pipelines.yml` file so that the command is `git ftp push` instead of `git ftp init`.
+
+---------------------------------------------
+
+## BitBucket Sync ##
+
+This is a lightweight utility script that synchronizes the local file system with updates from a BitBucket project.
 
 ## Description ##
 
